@@ -1,0 +1,32 @@
+
+---
+- name: CI/CD Pre-Checks
+  hosts: localhost
+  gather_facts: no
+ 
+  tasks:
+    - name: Check GitLab availability
+      wait_for:
+        host: <GitLab_host>
+        port: <GitLab_port>
+        state: started
+      ignore_errors: yes
+ 
+    - name: Check Maven availability
+      uri:
+        url: http://maven_repository_url
+        return_content: no
+      register: maven_check
+      failed_when: maven_check.status != 200
+      ignore_errors: yes
+ 
+    - name: Check Docker Registry availability
+      wait_for:
+        host: registry.hub.docker.com
+        port: 443
+        state: started
+      ignore_errors: yes
+ 
+    - name: Check Kubernetes availability
+      command: kubectl version --short
+      ignore_errors: yes
